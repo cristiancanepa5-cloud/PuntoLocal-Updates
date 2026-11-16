@@ -24,4 +24,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v0.4.1 PuntoLocal-Windows-8-en-adelante-0.4.1.zip --title 'PuntoLocal 0.4.1 — Windows 8 en adelante' --notes 'Instalador compatible con Windows 8, 8.1, 10 y 11, en equipos de 32 y 64 bits. Incluye productos agrupados por categoría, códigos de barras y canal de actualizaciones automáticas.'
+          gh release create v0.4.1 PuntoLocal-Windows-8-en-adelante-0.4.1.zip --repo cristiancanepa5-cloud/PuntoLocal-Updates --title 'PuntoLocal 0.4.1 — Windows 8 en adelante' --notes 'Instalador compatible con Windows 8, 8.1, 10 y 11, en equipos de 32 y 64 bits. Incluye productos agrupados por categoría, códigos de barras y canal de actualizaciones automáticas.'
