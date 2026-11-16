@@ -1,4 +1,4 @@
-name: Publicar PuntoLocal 0.4.1
+name: Publicar instalador directo 0.4.1
 
 on:
   push:
@@ -15,13 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Descargar paquete verificado
+      - name: Descargar paquete público verificado
         run: |
-          curl -L --fail --retry 3 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-845c-820e-98c7-0f2ec049f9e8/raw?se=2026-11-16T15%3A15%3A57Z&sp=r&sv=2026-06-06&sr=b&scid=c72f0a64-6a2d-40f0-9b87-bdbb11a294cb&skoid=db6dad9e-03ee-465b-aef6-ce0f63a161dc&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-15T16%3A17%3A55Z&ske=2026-11-16T16%3A17%3A55Z&sks=b&skv=2026-06-06&sig=Efb6R5CVfcTEnCEGrzJxpi6NZXaLw3uc1MnXgfxBYD0%3D' -o PuntoLocal-Windows-8-en-adelante-0.4.1.zip
+          curl -L --fail --retry 3 'https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.4.1/PuntoLocal-Windows-8-en-adelante-0.4.1.zip' -o PuntoLocal-Windows-8-en-adelante-0.4.1.zip
           echo 'a05f9a74439d4032b8412b516d5483b86ce959cb302ccdac52a0474f213302be  PuntoLocal-Windows-8-en-adelante-0.4.1.zip' | sha256sum --check
+          unzip -j PuntoLocal-Windows-8-en-adelante-0.4.1.zip 'PuntoLocal Setup 0.4.1 Windows 8+.exe'
 
-      - name: Publicar versión estable
+      - name: Agregar instalador EXE a la versión
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v0.4.1 PuntoLocal-Windows-8-en-adelante-0.4.1.zip --repo cristiancanepa5-cloud/PuntoLocal-Updates --title 'PuntoLocal 0.4.1 — Windows 8 en adelante' --notes 'Instalador compatible con Windows 8, 8.1, 10 y 11, en equipos de 32 y 64 bits. Incluye productos agrupados por categoría, códigos de barras y canal de actualizaciones automáticas.'
+          gh release upload v0.4.1 'PuntoLocal Setup 0.4.1 Windows 8+.exe' --repo cristiancanepa5-cloud/PuntoLocal-Updates --clobber
