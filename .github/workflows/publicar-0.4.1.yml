@@ -1,4 +1,4 @@
-name: Publicar PuntoLocal 0.5.1
+name: Publicar PuntoLocal 0.6.0
 
 on:
   push:
@@ -17,12 +17,12 @@ jobs:
     steps:
       - name: Descargar paquete verificado
         run: |
-          curl -L --fail --retry 3 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-0d08-820e-bd56-acdc2fd59a47/raw?se=2026-11-16T16%3A07%3A42Z&sp=r&sv=2026-06-06&sr=b&scid=830b48c7-f3a8-450b-a917-fd886597054b&skoid=db6dad9e-03ee-465b-aef6-ce0f63a161dc&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-16T12%3A47%3A23Z&ske=2026-11-17T12%3A47%3A23Z&sks=b&skv=2026-06-06&sig=hIYQn1jn/BMHE8OIEGCjRn1ZRTbgmy6b0/yQr0OLFpI%3D' -o PuntoLocal-Windows-8-en-adelante-0.5.1.zip
-          echo 'f3ede34b09328654f2e66dc92e4ae7571277e8a13bed31e13ebc2c3fb73780c0  PuntoLocal-Windows-8-en-adelante-0.5.1.zip' | sha256sum --check
-          unzip -j PuntoLocal-Windows-8-en-adelante-0.5.1.zip 'PuntoLocal Setup 0.5.1 Windows 8+.exe'
+          curl -L --fail --retry 3 'https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-e024-820e-823c-d0f039940908/raw?se=2026-11-16T16%3A27%3A11Z&sp=r&sv=2026-06-06&sr=b&scid=6292eb93-145f-408c-bdc5-e3244a995492&skoid=db6dad9e-03ee-465b-aef6-ce0f63a161dc&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-16T11%3A49%3A43Z&ske=2026-11-17T11%3A49%3A43Z&sks=b&skv=2026-06-06&sig=BYKhyRIet7zAK6348HRTdndgICaye01003JkbSJ%2Bb1I%3D' -o PuntoLocal-Windows-8-en-adelante-0.6.0.zip
+          echo '07134b5e90d1dfa52aad30b57c30be45b5f6a8712feec6efe00ffc04fcdc9a79  PuntoLocal-Windows-8-en-adelante-0.6.0.zip' | sha256sum --check
+          unzip -j PuntoLocal-Windows-8-en-adelante-0.6.0.zip 'PuntoLocal Setup 0.6.0 Windows 8+.exe'
 
-      - name: Publicar reparación del actualizador
+      - name: Publicar clientes y compras
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v0.5.1 'PuntoLocal-Windows-8-en-adelante-0.5.1.zip' 'PuntoLocal Setup 0.5.1 Windows 8+.exe' --repo cristiancanepa5-cloud/PuntoLocal-Updates --title 'PuntoLocal 0.5.1 — actualizador reparado' --notes 'Repara las actualizaciones remotas: descarga directa del EXE, manifiesto alternativo, diagnóstico visible y revisiones cada 15 minutos. Incluye también todas las mejoras funcionales de la versión 0.5.0.'
+          gh release create v0.6.0 'PuntoLocal-Windows-8-en-adelante-0.6.0.zip' 'PuntoLocal Setup 0.6.0 Windows 8+.exe' --repo cristiancanepa5-cloud/PuntoLocal-Updates --title 'PuntoLocal 0.6.0 — clientes y compras' --notes 'Agrega gestión de clientes, asociación de clientes a ventas, compras e ingreso automático de mercadería, actualización del costo y trazabilidad de proveedor, factura y usuario.'
