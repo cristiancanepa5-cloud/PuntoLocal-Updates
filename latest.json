@@ -1,17 +1,12 @@
 {
-  "tag_name": "v0.6.0",
-  "name": "PuntoLocal 0.6.0",
-  "published_at": "2026-11-16T16:22:49Z",
+  "tag_name": "v0.7.0",
+  "name": "PuntoLocal 0.7.0 — soporte y administración",
+  "published_at": "2026-11-17T03:33:24Z",
   "assets": [
     {
-      "name": "PuntoLocal.Setup.0.6.0.Windows.8+.exe",
-      "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.6.0/PuntoLocal.Setup.0.6.0.Windows.8%2B.exe",
-      "digest": "sha256:13cf02266f25c7ef9d537ef19d0ff976ae313bc0401cd4e1f530537fec2783f4"
-    },
-    {
-      "name": "PuntoLocal-Windows-8-en-adelante-0.6.0.zip",
-      "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.6.0/PuntoLocal-Windows-8-en-adelante-0.6.0.zip",
-      "digest": "sha256:07134b5e90d1dfa52aad30b57c30be45b5f6a8712feec6efe00ffc04fcdc9a79"
+      "name": "PuntoLocal-Windows-8-en-adelante-0.7.0.zip",
+      "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.7.0/PuntoLocal-Windows-8-en-adelante-0.7.0.zip",
+      "digest": "sha256:3b89e0a25851d19553212e7b3a9dea6b9c3da40b20550ca69591ac3c0a1e89b5"
     }
   ]
 }
