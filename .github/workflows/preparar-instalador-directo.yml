@@ -1,0 +1,89 @@
+name: Preparar instalador directo para cada versión
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Etiqueta de la versión, por ejemplo v0.7.0
+        required: true
+        default: v0.7.0
+
+permissions:
+  contents: write
+
+jobs:
+  preparar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Resolver versión y paquete
+        id: release
+        shell: bash
+        env:
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${EVENT_TAG:-$INPUT_TAG}"
+          test -n "$tag"
+          release_json="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag")"
+          zip_url="$(printf '%s' "$release_json" | jq -r '.assets[] | select((.name | startswith("PuntoLocal-Windows-")) and (.name | endswith(".zip"))) | .browser_download_url' | head -n 1)"
+          test -n "$zip_url"
+          version="${tag#v}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "zip_url=$zip_url" >> "$GITHUB_OUTPUT"
+
+      - name: Extraer instalador
+        shell: bash
+        env:
+          ZIP_URL: ${{ steps.release.outputs.zip_url }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          curl --fail --location --retry 3 --output puntolocal.zip "$ZIP_URL"
+          mkdir -p extraido
+          unzip -q puntolocal.zip -d extraido
+          instalador="$(find extraido -type f -iname '*.exe' | head -n 1)"
+          test -n "$instalador"
+          exe_name="PuntoLocal-Setup-$VERSION-Windows-8-plus.exe"
+          cp "$instalador" "$exe_name"
+          echo "EXE_NAME=$exe_name" >> "$GITHUB_ENV"
+
+      - name: Publicar EXE directo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: gh release upload "$TAG" "$EXE_NAME" --clobber --repo "$GITHUB_REPOSITORY"
+
+      - name: Actualizar manifiesto automático
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$TAG" > release.json
+          jq '{
+            tag_name: .tag_name,
+            name: .name,
+            published_at: .published_at,
+            assets: [
+              .assets[]
+              | select((.name | ascii_downcase | endswith(".exe")) or (.name | ascii_downcase | endswith(".zip")))
+              | {name, browser_download_url, digest}
+            ]
+          }' release.json > latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add latest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Actualizar manifiesto a $TAG"
+            git push
+          fi
