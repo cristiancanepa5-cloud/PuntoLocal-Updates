@@ -1,0 +1,39 @@
+name: Publicar instalador directo de PuntoLocal 0.7.0
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/publicar-instalador-directo-0.7.0.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TAG: v0.7.0
+      ZIP_URL: https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.7.0/PuntoLocal-Windows-8-en-adelante-0.7.0.zip
+      EXE_NAME: PuntoLocal-Setup-0.7.0-Windows-8-plus.exe
+    steps:
+      - name: Descargar paquete publicado
+        run: curl --fail --location --retry 3 --output puntolocal.zip "$ZIP_URL"
+
+      - name: Extraer instalador
+        shell: bash
+        run: |
+          mkdir -p extraido
+          unzip -q puntolocal.zip -d extraido
+          instalador="$(find extraido -type f -iname '*.exe' | head -n 1)"
+          test -n "$instalador"
+          cp "$instalador" "$EXE_NAME"
+          ls -lh "$EXE_NAME"
+
+      - name: Publicar EXE directo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$TAG" "$EXE_NAME" --clobber --repo "$GITHUB_REPOSITORY"
