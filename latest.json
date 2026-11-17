@@ -4,6 +4,11 @@
   "published_at": "2026-11-17T03:33:24Z",
   "assets": [
     {
+      "name": "PuntoLocal-Setup-0.7.0-Windows-8-plus.exe",
+      "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.7.0/PuntoLocal-Setup-0.7.0-Windows-8-plus.exe",
+      "digest": "sha256:d92f798235cc17a38a67f1e7f714a33481bbfc5204db85a52c064deb5503ab66"
+    },
+    {
       "name": "PuntoLocal-Windows-8-en-adelante-0.7.0.zip",
       "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.7.0/PuntoLocal-Windows-8-en-adelante-0.7.0.zip",
       "digest": "sha256:3b89e0a25851d19553212e7b3a9dea6b9c3da40b20550ca69591ac3c0a1e89b5"
