@@ -1,0 +1,154 @@
+name: Publicar PuntoLocal 0.8.1 con descargas más rápidas
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/publicar-puntolocal-0.8.1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    timeout-minutes: 65
+    steps:
+      - name: Preparar repositorio de actualizaciones
+        uses: actions/checkout@v4
+        with:
+          path: updates
+
+      - name: Descargar código privado de PuntoLocal
+        uses: actions/checkout@v4
+        with:
+          repository: cristiancanepa5-cloud/PuntoLocal
+          ref: c3738272b37720ac80a44b532686d4f082849273
+          ssh-key: ${{ secrets.SOURCE_DEPLOY_KEY }}
+          persist-credentials: false
+          path: source
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: source/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: source
+        run: npm ci
+
+      - name: Verificar compatibilidad con Windows 8
+        working-directory: source
+        run: node -e "const v=require('./node_modules/electron/package.json').version; if(v!=='22.3.27') process.exit(1)"
+
+      - name: Configurar servidor de actualizaciones
+        working-directory: source
+        shell: pwsh
+        env:
+          PUNTOLOCAL_UPDATE_API_URL: https://api.github.com/repos/cristiancanepa5-cloud/PuntoLocal-Updates/releases/latest
+        run: node scripts/configure-updates.mjs
+
+      - name: Compilar interfaz
+        working-directory: source
+        run: npm run build
+
+      - name: Crear instalador combinado para versiones anteriores
+        working-directory: source
+        shell: pwsh
+        run: npx electron-builder --win nsis --x64 --ia32 --publish never --config.artifactName='PuntoLocal.Setup.${version}.Windows.8+.${ext}' --config.directories.output=release/legacy
+
+      - name: Comprobar instalador combinado
+        shell: pwsh
+        run: |
+          if (-not (Test-Path 'source/release/legacy/PuntoLocal.Setup.0.8.1.Windows.8+.exe')) { throw 'Falta el instalador combinado' }
+          if (-not (Test-Path 'source/release/legacy/latest.yml')) { throw 'Falta el manifiesto' }
+
+      - name: Crear instalador de 64 bits
+        working-directory: source
+        shell: pwsh
+        run: npx electron-builder --win nsis --x64 --publish never --config.directories.output=release/x64
+
+      - name: Crear instalador de 32 bits
+        working-directory: source
+        shell: pwsh
+        run: npx electron-builder --win nsis --ia32 --publish never --config.directories.output=release/ia32
+
+      - name: Comprobar archivos de actualización
+        shell: pwsh
+        run: |
+          if (-not (Test-Path 'source/release/x64/PuntoLocal.Setup.0.8.1.Windows.8.x64.exe')) { throw 'Falta el instalador de 64 bits' }
+          if (-not (Test-Path 'source/release/ia32/PuntoLocal.Setup.0.8.1.Windows.8.ia32.exe')) { throw 'Falta el instalador de 32 bits' }
+          if (-not (Test-Path 'source/release/legacy/PuntoLocal.Setup.0.8.1.Windows.8+.exe.blockmap')) { throw 'Falta el blockmap combinado' }
+
+      - name: Publicar instalador compatible con versiones anteriores
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.8.1
+          target_commitish: main
+          name: PuntoLocal 0.8.1 — actualizaciones más rápidas
+          body: |
+            ## Mejoras
+
+            - La aplicación conserva las descargas verificadas y evita descargarlas nuevamente.
+            - Los instaladores de 32 y 64 bits son más livianos para las próximas actualizaciones.
+            - Esta versión incluye un instalador combinado para actualizar con seguridad desde versiones anteriores.
+            - Una descarga interrumpida no reemplaza el instalador completo.
+            - La copia de seguridad guarda únicamente los datos del negocio.
+
+            Compatible con Windows 8, 8.1, 10 y 11. La actualización conserva los datos existentes.
+          draft: false
+          prerelease: false
+          make_latest: true
+          fail_on_unmatched_files: true
+          files: |
+            source/release/legacy/PuntoLocal.Setup.0.8.1.Windows.8+.exe
+            source/release/legacy/PuntoLocal.Setup.0.8.1.Windows.8+.exe.blockmap
+            source/release/legacy/latest.yml
+
+      - name: Agregar instaladores livianos
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.8.1
+          fail_on_unmatched_files: true
+          files: |
+            source/release/x64/PuntoLocal.Setup.0.8.1.Windows.8.x64.exe
+            source/release/x64/PuntoLocal.Setup.0.8.1.Windows.8.x64.exe.blockmap
+            source/release/ia32/PuntoLocal.Setup.0.8.1.Windows.8.ia32.exe
+            source/release/ia32/PuntoLocal.Setup.0.8.1.Windows.8.ia32.exe.blockmap
+
+      - name: Actualizar referencia pública
+        shell: pwsh
+        run: |
+          $combinedName = 'PuntoLocal.Setup.0.8.1.Windows.8+.exe'
+          $x64Name = 'PuntoLocal.Setup.0.8.1.Windows.8.x64.exe'
+          $ia32Name = 'PuntoLocal.Setup.0.8.1.Windows.8.ia32.exe'
+          $entries = @(
+            @{ name = $combinedName; file = "source/release/legacy/$combinedName"; url = 'PuntoLocal.Setup.0.8.1.Windows.8%2B.exe' },
+            @{ name = $x64Name; file = "source/release/x64/$x64Name"; url = $x64Name },
+            @{ name = $ia32Name; file = "source/release/ia32/$ia32Name"; url = $ia32Name }
+          )
+          $assets = @($entries | ForEach-Object {
+            [ordered]@{
+              name = $_.name
+              browser_download_url = "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.8.1/$($_.url)"
+              digest = "sha256:$((Get-FileHash -Algorithm SHA256 $_.file).Hash.ToLower())"
+            }
+          })
+          $info = [ordered]@{
+            tag_name = 'v0.8.1'
+            name = 'PuntoLocal 0.8.1 — actualizaciones más rápidas'
+            published_at = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+            assets = $assets
+          }
+          $json = $info | ConvertTo-Json -Depth 5
+          [System.IO.File]::WriteAllText((Join-Path (Resolve-Path 'updates').Path 'latest.json'), $json + [Environment]::NewLine, (New-Object System.Text.UTF8Encoding($false)))
+          Set-Location updates
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add latest.json
+          git commit -m 'Actualizar referencia a PuntoLocal 0.8.1'
+          git push
