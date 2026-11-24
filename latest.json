@@ -1,12 +1,22 @@
 {
-  "tag_name": "v0.8.0",
-  "name": "PuntoLocal 0.8.0 — planes, caja y auditoría",
-  "published_at": "2026-11-24T17:41:40Z",
+  "tag_name": "v0.8.1",
+  "name": "PuntoLocal 0.8.1 — actualizaciones más rápidas",
+  "published_at": "2026-11-24T18:04:24Z",
   "assets": [
     {
-      "name": "PuntoLocal.Setup.0.8.0.Windows.8+.exe",
-      "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.8.0/PuntoLocal.Setup.0.8.0.Windows.8%2B.exe",
-      "digest": "sha256:ebca3382d138e4242d65fb9d84adb2e54926b58bef8ca6b34693fb98660aebe2"
+      "name": "PuntoLocal.Setup.0.8.1.Windows.8+.exe",
+      "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.8.1/PuntoLocal.Setup.0.8.1.Windows.8%2B.exe",
+      "digest": "sha256:a269edcd3ea7a32a633024c685a062052bf516cc9e4cd99e48ece73f6d8326ce"
+    },
+    {
+      "name": "PuntoLocal.Setup.0.8.1.Windows.8.x64.exe",
+      "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.8.1/PuntoLocal.Setup.0.8.1.Windows.8.x64.exe",
+      "digest": "sha256:80af2709dbbd3fe84722844cbc98f0c487b4502a6c64deb47651bde34f06be94"
+    },
+    {
+      "name": "PuntoLocal.Setup.0.8.1.Windows.8.ia32.exe",
+      "browser_download_url": "https://github.com/cristiancanepa5-cloud/PuntoLocal-Updates/releases/download/v0.8.1/PuntoLocal.Setup.0.8.1.Windows.8.ia32.exe",
+      "digest": "sha256:b73ba76c0fdcd5795f2f210bbbee06f65ca277270be6bebc0aa45a19fc0a1863"
     }
   ]
 }
