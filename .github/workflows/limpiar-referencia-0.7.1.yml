@@ -1,0 +1,31 @@
+name: Limpiar referencia de PuntoLocal 0.7.1
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/limpiar-referencia-0.7.1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  limpiar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mover etiqueta a historial limpio
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/v0.7.1" \
+            -f sha="$GITHUB_SHA" \
+            -F force=true
+
+      - name: Verificar etiqueta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          actual="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v0.7.1" --jq '.object.sha')"
+          test "$actual" = "$GITHUB_SHA"
