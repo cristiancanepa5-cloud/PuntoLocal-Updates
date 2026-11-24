@@ -1,0 +1,82 @@
+name: Publicar PuntoLocal 0.7.1 con actualización automática
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/publicar-puntolocal-0.7.1.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: windows-latest
+    timeout-minutes: 50
+    steps:
+      - name: Descargar PuntoLocal 0.7.1
+        uses: actions/checkout@v4
+        with:
+          repository: cristiancanepa5-cloud/PuntoLocal
+          ref: 8c1510d2d33177b40c39d638d211c3fd5a4af424
+          persist-credentials: false
+
+      - name: Preparar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Verificar compatibilidad con Windows 8
+        run: node -e "const v=require('./node_modules/electron/package.json').version; console.log('Electron '+v); if(v!=='22.3.27') process.exit(1)"
+
+      - name: Configurar actualizaciones
+        shell: pwsh
+        env:
+          PUNTOLOCAL_UPDATE_API_URL: https://api.github.com/repos/cristiancanepa5-cloud/PuntoLocal-Updates/releases/latest
+        run: node scripts/configure-updates.mjs
+
+      - name: Compilar interfaz
+        run: npm run build
+
+      - name: Crear instalador de 32 y 64 bits
+        run: npx electron-builder --win nsis --x64 --ia32 --publish never
+
+      - name: Comprobar archivos de actualización
+        shell: pwsh
+        run: |
+          Get-ChildItem release
+          if (-not (Test-Path "release/latest.yml")) { throw "Falta latest.yml" }
+          if ((Get-ChildItem "release/*.exe").Count -ne 1) { throw "Debe existir un instalador EXE" }
+          if ((Get-ChildItem "release/*.blockmap").Count -ne 1) { throw "Debe existir un blockmap" }
+
+      - name: Publicar versión 0.7.1
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.7.1
+          target_commitish: main
+          name: PuntoLocal 0.7.1 — navegación y stock mejorados
+          body: |
+            ## Novedades
+
+            - Mejoras visuales en la pantalla de ventas y el catálogo.
+            - Productos agrupados por categoría con códigos de barras obligatorios.
+            - Accesos rápidos y filtro de stock bajo corregidos.
+            - Controles del carrito y del inventario más claros y accesibles.
+            - Permisos de navegación corregidos según el rol del usuario.
+            - Compatible con Windows 8, 8.1, 10 y 11.
+
+            La actualización conserva los datos existentes.
+          draft: false
+          prerelease: false
+          make_latest: true
+          fail_on_unmatched_files: true
+          files: |
+            release/*.exe
+            release/*.exe.blockmap
+            release/latest.yml
