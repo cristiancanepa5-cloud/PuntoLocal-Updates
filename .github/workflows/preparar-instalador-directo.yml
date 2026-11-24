@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Etiqueta de la versión, por ejemplo v0.7.0
+        description: Etiqueta de la versión, por ejemplo v0.7.1
         required: true
-        default: v0.7.0
+        default: v0.7.1
 
 permissions:
   contents: write
@@ -42,7 +42,8 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "zip_url=$zip_url" >> "$GITHUB_OUTPUT"
 
-      - name: Extraer instalador
+      - name: Extraer archivos de actualización
+        id: files
         shell: bash
         env:
           ZIP_URL: ${{ steps.release.outputs.zip_url }}
@@ -51,17 +52,30 @@ jobs:
           curl --fail --location --retry 3 --output puntolocal.zip "$ZIP_URL"
           mkdir -p extraido
           unzip -q puntolocal.zip -d extraido
-          instalador="$(find extraido -type f -iname '*.exe' | head -n 1)"
-          test -n "$instalador"
-          exe_name="PuntoLocal-Setup-$VERSION-Windows-8-plus.exe"
-          cp "$instalador" "$exe_name"
-          echo "EXE_NAME=$exe_name" >> "$GITHUB_ENV"
+          installer="$(find extraido -type f -iname '*.exe' | head -n 1)"
+          blockmap="$(find extraido -type f -iname '*.exe.blockmap' | head -n 1)"
+          latest="$(find extraido -type f -name 'latest.yml' | head -n 1)"
+          test -n "$installer"
+          test -n "$blockmap"
+          test -n "$latest"
+          safe_exe="PuntoLocal-Setup-$VERSION-Windows-8-plus.exe"
+          cp "$installer" "$safe_exe"
+          echo "installer=$installer" >> "$GITHUB_OUTPUT"
+          echo "blockmap=$blockmap" >> "$GITHUB_OUTPUT"
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "safe_exe=$safe_exe" >> "$GITHUB_OUTPUT"
 
-      - name: Publicar EXE directo
+      - name: Publicar instalador y archivos de actualización
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ steps.release.outputs.tag }}
-        run: gh release upload "$TAG" "$EXE_NAME" --clobber --repo "$GITHUB_REPOSITORY"
+          INSTALLER: ${{ steps.files.outputs.installer }}
+          BLOCKMAP: ${{ steps.files.outputs.blockmap }}
+          LATEST: ${{ steps.files.outputs.latest }}
+          SAFE_EXE: ${{ steps.files.outputs.safe_exe }}
+        run: |
+          gh release upload "$TAG" "$INSTALLER" "$BLOCKMAP" "$LATEST" "$SAFE_EXE" --clobber --repo "$GITHUB_REPOSITORY"
 
       - name: Actualizar manifiesto automático
         shell: bash
@@ -76,7 +90,7 @@ jobs:
             published_at: .published_at,
             assets: [
               .assets[]
-              | select((.name | ascii_downcase | endswith(".exe")) or (.name | ascii_downcase | endswith(".zip")))
+              | select((.name | ascii_downcase | endswith(".exe")) or (.name | ascii_downcase | endswith(".zip")) or (.name | ascii_downcase | endswith(".blockmap")) or (.name == "latest.yml"))
               | {name, browser_download_url, digest}
             ]
           }' release.json > latest.json
